@@ -1,4 +1,4 @@
-# Milestone 2 Project Proposal: Fraud Detection & Health Outcome Analysis
+# Milestone 2 Project: Fraud Detection & Health Outcome Analysis
 
 ## Introduction & Overview
 
