@@ -2,7 +2,7 @@
 
 ## Introduction & Overview
 
-This project combines supervised learning to classify CFPB consumer complaints as fraud versus legitimate cases, and unsupervised learning to discover patterns in county-level mortality data linked to socioeconomic factors. For Part A, I aim to build models with 85%+ accuracy to help investigators prioritize fraud cases. For Part B, I'll use clustering to identify county groups with similar overdose mortality trajectories and demographic characteristics.
+This project combines supervised learning to classify CFPB consumer complaints as fraud versus legitimate cases, and unsupervised learning to discover patterns in county-level mortality data linked to socioeconomic factors. For Part A, I aim to build models  to help investigators prioritize fraud cases. For Part B, I'll use clustering to identify county groups with similar overdose mortality trajectories and demographic characteristics.
 
 ---
 
