@@ -33,6 +33,7 @@ This project combines supervised learning to classify CFPB consumer complaints a
 **Visualizations**
   EDA panel, ROC + confusion matrices (3 models), model comparison bar chart, ablation chart, feature importance, HP sensitivity heatmap, failure analysis breakdowns
 
+
 ---
 
 ## Part B: Unsupervised Learning - Health Outcome Patterns
