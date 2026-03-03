@@ -17,8 +17,8 @@ This project combines supervised learning to classify CFPB consumer complaints a
   Class distribution: 6,244 fraud (3.77%), 159,361 non-fraud
   Top fraud products: Debt Collection (2,274), Money Transfer (1,469), Checking/Savings (924)
   
-**Features (5,000+ total)**
-  Text: TF-IDF (5,000 terms) on complaint narratives
+**Features (1,000+ total)**
+  Text: TF-IDF (1,000 terms) on complaint narratives
   Categorical (one-hot): Product, company, state, submission channel, company response, timely response
   Numeric: Complaint narrative length, word count, day of week
 
