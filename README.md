@@ -2,44 +2,54 @@
 
 ## Introduction & Overview
 
-This project combines supervised learning to classify CFPB consumer complaints as fraud versus legitimate cases, and unsupervised learning to discover patterns in county-level mortality data linked to socioeconomic factors. For Part A, I aim to build models with 85%+ accuracy to help investigators prioritize fraud cases. For Part B, I'll use clustering to identify county groups with similar overdose/suicide mortality trajectories and demographic characteristics.
-
-The main challenges include: (1) class imbalance in the CFPB data despite 40% fraud prevalence, requiring SMOTE and careful metric selection (prioritizing recall over accuracy), (2) messy unstructured complaint text needing NLP preprocessing, (3) model interpretability requirements for regulatory compliance, (4) CDC WONDER data suppression creating ~15-20% missing values in rural counties, (5) high-dimensional ACS census data requiring dimensionality reduction, and (6) spatial autocorrelation between neighboring counties violating clustering independence assumptions.
-
-## Related Work
-
-The most similar project is "Automated Complaint Classification using Machine Learning" by Adarsh Singh on Kaggle (https://www.kaggle.com/code/adarshsng/consumer-complaint-classification-nlp), which uses the same CFPB dataset to classify complaints into 18 product categories (credit card, mortgage, etc.) with 70% accuracy using Random Forest and TF-IDF.
-
-My project differs by: (1) predicting fraud vs non-fraud (binary classification with regulatory implications) rather than product categories, (2) using advanced methods like XGBoost, MiniLM (compact sentence transformer for CPU), and SMOTE for imbalance handling, (3) including a separate unsupervised component with CDC mortality and ACS demographic data for public health insights, (4) optimizing for recall/F2-score rather than accuracy since missing fraud is costlier than false alarms, and (5) implementing LIME/SHAP for model explainability.
+This project combines supervised learning to classify CFPB consumer complaints as fraud versus legitimate cases, and unsupervised learning to discover patterns in county-level mortality data linked to socioeconomic factors. For Part A, I aim to build models  to help investigators prioritize fraud cases. For Part B, I'll use clustering to identify county groups with similar overdose mortality trajectories and demographic characteristics.
 
 ---
 
 ## Part A: Supervised Learning - Financial Fraud Detection
 
-**Dataset**: CFPB Consumer Complaints Database (https://www.consumerfinance.gov/data-research/consumer-complaints/) with 165,881 complaints from 2020-2025, 40% fraud-labeled (66,077 fraud cases). Features include complaint narrative text, product type, company name, state, submission date, and response time.
+**Problem**
+  Binary classification of consumer complaints as fraud vs. legitimate using the CFPB Consumer Complaints Database.
+  
+**Dataset**
+  Source: CFPB (consumerfinance.gov), 165,605 complaints, 18 columns
+  Date range: January 2020 – February 2026
+  Class distribution: 6,244 fraud (3.77%), 159,361 non-fraud
+  Top fraud products: Debt Collection (2,274), Money Transfer (1,469), Checking/Savings (924)
+  
+**Features (1,000+ total)**
+  Text: TF-IDF (1,000 terms) on complaint narratives
+  Categorical (one-hot): Product, company, state, submission channel, company response, timely response
+  Numeric: Complaint narrative length, word count, day of week
 
-**Learning Approaches & Features**: I'll start with Logistic Regression + TF-IDF (5000 terms) as an interpretable baseline, then try ensemble methods (Random Forest with 100 trees, XGBoost), and use MiniLM (all-MiniLM-L6-v2 from Hugging Face) which is optimized for CPU inference. Text features will include TF-IDF vectors, Word2Vec embeddings (300-dim), and MiniLM embeddings (384-dim). Additional features: response time, complaint length, historical state fraud rate, and one-hot encoded product type. I'll use SMOTE for oversampling, class weights, and threshold tuning to handle imbalance. This combination balances interpretability (TF-IDF), semantic understanding (MiniLM - 3x faster than DistilBERT, only 22M parameters), and interaction detection (tree methods).
+**Additional Analyses**
+  SMOTE: XGB+SMOTE achieves F1=0.544, Recall=75.4% (best overall)
+  Ablation: Hybrid (text+structured) F1=0.451 > Structured-only (0.393) > Text-only (0.313)
+  HP Sensitivity: max_depth is dominant (~50% F1 gain from 10→30); n_estimators negligible
+  5-Fold CV: RF=0.324±0.107, LR=0.255±0.039, XGB=0.059±0.027 (default threshold)
+  Failure Analysis: 635/1,127 fraud missed (56.3%), top product=Debt Collection, top state=TX
+  Feature Importance: Top-20 features visualized (mix of TF-IDF terms and structured fields)
+  
+**Visualizations**
+  EDA panel, ROC + confusion matrices (3 models), model comparison bar chart, ablation chart, feature importance, HP sensitivity heatmap, failure analysis breakdowns
 
-**External Datasets/Tools**: FTC fraud reports for state-level and product-specific fraud statistics to create additional features. Pre-trained MiniLM from Hugging Face (sentence-transformers library, specifically optimized for CPU and semantic embeddings). LIME/SHAP libraries for model explainability. Work required: downloading/scraping FTC data, merging with CFPB data by state/product, generating MiniLM embeddings for complaint text, and implementing SHAP wrappers for Random Forest and XGBoost.
-
-**Evaluation & Visualization**: Primary metrics are F1-score and F2-score (weights recall 2x precision) since missing fraud is costlier than false alarms. Secondary metrics include precision, recall, accuracy, ROC-AUC, and PR-AUC. Visualizations: feature importance charts (TF-IDF terms, MiniLM embedding clusters), ROC and PR curves comparing models, confusion matrices, SHAP waterfall plots for individual predictions, word clouds comparing false negatives vs positives, and temporal performance analysis (2020-2025).
 
 ---
 
 ## Part B: Unsupervised Learning - Health Outcome Patterns
 
-**Dataset**: CDC WONDER mortality data (https://wonder.cdc.gov/) with county-level death rates (2015-2023) for drug overdose, suicide, and alcohol-related deaths, and American Community Survey 5-year estimates (https://data.census.gov/) with county-level demographics including income, poverty, education, unemployment, age, population density, and insurance coverage. Datasets will be merged using FIPS county codes.
+**Dataset**: CDC WONDER mortality data (https://wonder.cdc.gov/) with county-level death rates (2018-2023) for drug overdose, suicide, and alcohol-related deaths, and American Community Survey 5-year estimates (https://data.census.gov/) with county-level demographics including income, poverty, education, unemployment, age, population density, and insurance coverage. Datasets will be merged using FIPS county codes and year.
 
-**Research Questions**: (1) Do counties cluster into distinct mortality trajectory patterns (e.g., stable, epidemic peak, accelerating)? (2) What socioeconomic factors differentiate high-risk from low-risk clusters? (3) Do clusters show spatial coherence (e.g., Appalachian opioid belt)? (4) Which demographic variables most strongly predict cluster membership?
+**Research Questions**: (1) Do counties cluster into distinct mortality  patterns? (2) What socioeconomic factors differentiate clusters? (3) Do clusters show spatial coherence (e.g., regionalization)? (4) Which demographic variables most strongly predict cluster membership?
 
-**Data Preparation**: Calculate age-adjusted mortality rates per 100k, handle CDC suppression (<10 deaths) via KNN imputation or county exclusion, compute year-over-year rate changes and 3-year trends, create composite indices (economic stress, health access, rurality), merge ACS with CDC via FIPS codes aligning temporal periods, and apply PCA to reduce 100+ ACS variables to 10-15 components explaining 80%+ variance.
+**Data Preparation**: Calculate crude mortality rates per 100k, handle CDC suppression (<20 deaths) via KNN imputation or county exclusion, compute year-over-year rate changes and 3-year trends, create composite indices (economic stress, health access, rurality), merge ACS with CDC via FIPS codes aligning temporal periods, and apply PCA to reduce variables to components explaining 80%+ variance.
 
-**Unsupervised Approaches**: (1) K-Means with Dynamic Time Warping distance for mortality trajectories using optimal k from elbow method and silhouette scores, (2) K-Means and hierarchical clustering (Ward linkage) on combined mortality + PCA-reduced demographics, (3) DBSCAN for outlier detection, and (4) t-SNE/UMAP for 2D visualization. Features include mortality rates, rate changes, trend slopes, and PCA components from ACS demographics.
+**Unsupervised Approaches**: (1) K-Means for mortality trajectories using optimal k from elbow method and silhouette scores, (2) K-Means and hierarchical clustering (Ward linkage) on combined mortality + PCA-reduced demographics, (3) DBSCAN for outlier detection.
 
-**External Resources**: Census Bureau FIPS codes and county shapefiles for geographic mapping, libraries including scikit-learn (clustering, PCA), tslearn (DTW), geopandas (spatial), and folium/plotly (interactive maps). Post-hoc explainability via training Random Forest to predict cluster labels and extracting feature importance/SHAP values.
+**External Resources**: Census Bureau FIPS codes and county shapefiles for geographic mapping, libraries including scikit-learn (clustering, PCA), geopandas (spatial), and folium/plotly (interactive maps). 
 
-**Evaluation Methods**: Internal validation using silhouette score (>0.3 target), Davies-Bouldin index, Calinski-Harabasz index, elbow method, and bootstrap stability (1000 iterations). External validation via geographic coherence with known epidemic regions and correlation with CDC opioid prescription rates. Spatial analysis using Moran's I for autocorrelation testing.
+**Evaluation Methods**: Internal validation using silhouette score, Davies-Bouldin index, and elbow method to determine optimum K-Value. Ablation testing on variables of the clusters. 
 
-**Visualizations**: Elbow and silhouette plots for cluster quality, interactive choropleth maps colored by cluster assignment with county-level tooltips, t-SNE/UMAP scatterplots with points colored by cluster and sized by population, trajectory line plots showing average mortality by cluster (2015-2023), feature distribution heatmaps comparing cluster characteristics, hierarchical clustering dendrograms, box plots comparing key variables across clusters, PCA biplots with feature vectors, and feature importance bar charts from post-hoc Random Forest.
+**Visualizations**: Elbow and silhouette plots for cluster quality, interactive geographic maps colored by cluster assignment with county-level tooltips, feature distribution heatmaps comparing cluster characteristics, hierarchical clustering dendrograms, box plots comparing key variables across clusters, and PCA biplots with feature vectors.
 
 ---
