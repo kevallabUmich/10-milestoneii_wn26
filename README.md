@@ -12,7 +12,7 @@ This project combines supervised learning to classify CFPB consumer complaints a
 
 **Learning Approaches & Features**: I'll start with Logistic Regression + TF-IDF (5000 terms) as an interpretable baseline, then try ensemble methods (Random Forest with 100 trees, XGBoost), and use MiniLM (all-MiniLM-L6-v2 from Hugging Face) which is optimized for CPU inference. Text features will include TF-IDF vectors, Word2Vec embeddings (300-dim), and MiniLM embeddings (384-dim). Additional features: response time, complaint length, historical state fraud rate, and one-hot encoded product type. I'll use SMOTE for oversampling, class weights, and threshold tuning to handle imbalance. This combination balances interpretability (TF-IDF), semantic understanding (MiniLM - 3x faster than DistilBERT, only 22M parameters), and interaction detection (tree methods).
 
-**Evaluation & Visualization**: Primary metrics are F1-score and F2-score (weights recall 2x precision) since missing fraud is costlier than false alarms. Secondary metrics include precision, recall, accuracy, ROC-AUC, and PR-AUC. Visualizations: feature importance charts (TF-IDF terms, MiniLM embedding clusters), ROC and PR curves comparing models, confusion matrices, SHAP waterfall plots for individual predictions, word clouds comparing false negatives vs positives, and temporal performance analysis (2020-2025).
+**Evaluation & Visualization**: Primary metrics are F1-score and F2-score (weights recall 2x precision) since missing fraud is costlier than false alarms. Secondary metrics include precision, recall, accuracy, ROC-AUC, and PR-AUC. Visualizations: feature importance charts (TF-IDF terms), ROC and PR curves comparing models, confusion matrices, and temporal performance analysis (2020-2025).
 
 ---
 
