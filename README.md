@@ -8,11 +8,30 @@ This project combines supervised learning to classify CFPB consumer complaints a
 
 ## Part A: Supervised Learning - Financial Fraud Detection
 
-**Dataset**: CFPB Consumer Complaints Database (https://www.consumerfinance.gov/data-research/consumer-complaints/) with 165,881 complaints from 2020-2025, 40% fraud-labeled (66,077 fraud cases). Features include complaint narrative text, product type, company name, state, submission date, and response time.
+**Problem**
+  Binary classification of consumer complaints as fraud vs. legitimate using the CFPB Consumer Complaints Database.
+  
+**Dataset**
+  Source: CFPB (consumerfinance.gov), 165,605 complaints, 18 columns
+  Date range: January 2020 – February 2026
+  Class distribution: 6,244 fraud (3.77%), 159,361 non-fraud
+  Top fraud products: Debt Collection (2,274), Money Transfer (1,469), Checking/Savings (924)
+  
+**Features (5,000+ total)**
+  Text: TF-IDF (5,000 terms) on complaint narratives
+  Categorical (one-hot): Product, company, state, submission channel, company response, timely response
+  Numeric: Complaint narrative length, word count, day of week
 
-**Learning Approaches & Features**: I'll start with Logistic Regression + TF-IDF (5000 terms) as an interpretable baseline, then try ensemble methods (Random Forest with 100 trees, XGBoost), and use MiniLM (all-MiniLM-L6-v2 from Hugging Face) which is optimized for CPU inference. Text features will include TF-IDF vectors, Word2Vec embeddings (300-dim), and MiniLM embeddings (384-dim). Additional features: response time, complaint length, historical state fraud rate, and one-hot encoded product type. I'll use SMOTE for oversampling, class weights, and threshold tuning to handle imbalance. This combination balances interpretability (TF-IDF), semantic understanding (MiniLM - 3x faster than DistilBERT, only 22M parameters), and interaction detection (tree methods).
-
-**Evaluation & Visualization**: Primary metrics are F1-score and F2-score (weights recall 2x precision) since missing fraud is costlier than false alarms. Secondary metrics include precision, recall, accuracy, ROC-AUC, and PR-AUC. Visualizations: feature importance charts (TF-IDF terms), ROC and PR curves comparing models, confusion matrices, and temporal performance analysis (2020-2025).
+**Additional Analyses**
+  SMOTE: XGB+SMOTE achieves F1=0.544, Recall=75.4% (best overall)
+  Ablation: Hybrid (text+structured) F1=0.451 > Structured-only (0.393) > Text-only (0.313)
+  HP Sensitivity: max_depth is dominant (~50% F1 gain from 10→30); n_estimators negligible
+  5-Fold CV: RF=0.324±0.107, LR=0.255±0.039, XGB=0.059±0.027 (default threshold)
+  Failure Analysis: 635/1,127 fraud missed (56.3%), top product=Debt Collection, top state=TX
+  Feature Importance: Top-20 features visualized (mix of TF-IDF terms and structured fields)
+  
+**Visualizations**
+  EDA panel, ROC + confusion matrices (3 models), model comparison bar chart, ablation chart, feature importance, HP sensitivity heatmap, failure analysis breakdowns
 
 ---
 
